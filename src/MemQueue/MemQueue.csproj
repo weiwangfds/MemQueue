@@ -8,11 +8,12 @@
     <RootNamespace>MemQueue</RootNamespace>
     <AssemblyName>MemQueue</AssemblyName>
     <PackageId>MemQueue</PackageId>
-    <Version>1.0.1</Version>
-    <Description>In-memory Kafka-like message queue and event bus for .NET 8. Zero external infrastructure. Process-local pub/sub with topic partitions, consumer groups, offset tracking, retention, and backpressure.</Description>
+    <Version>1.0.2</Version>
+    <Description>In-memory Kafka-like message queue and event bus for .NET 8. Zero external infrastructure. Process-local pub/sub with topic partitions, consumer groups, offset tracking, retention, backpressure, and dead letter queue. Includes source generator for declarative subscription registration.</Description>
     <Authors>weiwangfds</Authors>
     <Owners>weiwangfds</Owners>
-    <PackageTags>message-queue;pub-sub;event-bus;kafka;in-memory;message-bus;consumer-groups;offset-tracking;backpressure;dead-letter-queue</PackageTags>
+    <PackageTags>dotnet8;in-memory;message-queue;event-bus;kafka;consumer-group;partition;offset;backpressure;dead-letter-queue;pub-sub;source-generator;memqueue</PackageTags>
+    <PackageReleaseNotes>Rename from LiteQueue to MemQueue. Updated all namespaces, APIs, and documentation.</PackageReleaseNotes>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/weiwangfds/MemQueue</RepositoryUrl>
     <PackageProjectUrl>https://github.com/weiwangfds/MemQueue</PackageProjectUrl>

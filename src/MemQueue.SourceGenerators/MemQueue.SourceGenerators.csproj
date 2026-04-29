@@ -8,15 +8,17 @@
     <RootNamespace>MemQueue.SourceGenerators</RootNamespace>
     <AssemblyName>MemQueue.SourceGenerators</AssemblyName>
     <PackageId>MemQueue.SourceGenerators</PackageId>
-    <Version>1.0.1</Version>
-    <Description>Source generator for MemQueue — generates IHostedService boilerplate from [Subscribe] attributes.</Description>
+    <Version>1.0.2</Version>
+    <Description>Source generator for MemQueue — generates IHostedService boilerplate from [Subscribe] attributes. Companion package to MemQueue (in-memory Kafka-like message queue for .NET 8).</Description>
     <Authors>weiwangfds</Authors>
     <Owners>weiwangfds</Owners>
-    <PackageTags>memqueue;source-generator;roslyn;code-generation;message-queue</PackageTags>
+    <PackageTags>dotnet8;memqueue;source-generator;roslyn;code-generation;message-queue;subscribe;ihostedservice</PackageTags>
+    <PackageReleaseNotes>Rename from LiteQueue.SourceGenerators to MemQueue.SourceGenerators.</PackageReleaseNotes>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/weiwangfds/MemQueue</RepositoryUrl>
     <PackageProjectUrl>https://github.com/weiwangfds/MemQueue</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/weiwangfds/MemQueue</PackageProjectUrl>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
