@@ -1,0 +1,35 @@
+## .NET
+bin/
+obj/
+out/
+publish/
+*.user
+*.suo
+*.cache
+*.log
+*.nupkg
+*.snupkg
+
+## IDE
+.vs/
+.vscode/
+.idea/
+*.swp
+*~
+
+## OS
+.DS_Store
+Thumbs.db
+
+## BenchmarkDotNet
+BenchmarkDotNet.Artifacts/
+
+## Test results
+TestResults/
+
+## Secrets
+.nuget-api-key
+
+## Claude / AI
+.claude/
+docs/superpowers/
