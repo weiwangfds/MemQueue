@@ -38,6 +38,7 @@ public class BusTests
         await using var bus = CreateBus(tm);
 
         var received = new List<string>();
+        var firstMessageConsumed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
 
         var subscribeTask = bus.SubscribeAsync<TestMessage>(
@@ -45,15 +46,24 @@ public class BusTests
             (msg, ctx, ct) =>
             {
                 received.Add(msg.Value);
+                firstMessageConsumed.TrySetResult();
                 if (received.Count >= 2) cts.Cancel();
                 return ValueTask.CompletedTask;
             },
             cts.Token);
 
-        await Task.Delay(200);
+        // Produce first message and wait for consumer to actually process it
         await bus.ProduceAsync((TopicId)"broadcast-topic", new TestMessage("msg1"));
+        await firstMessageConsumed.Task.WaitAsync(cts.Token);
+
         await bus.ProduceAsync((TopicId)"broadcast-topic", new TestMessage("msg2"));
 
+        // Wait until we've received both or timeout
+        using var doneCts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        while (received.Count < 2 && !doneCts.Token.IsCancellationRequested)
+            await Task.Delay(50, doneCts.Token);
+
+        cts.Cancel();
         await subscribeTask;
 
         Assert.Equal(2, received.Count);
@@ -70,6 +80,8 @@ public class BusTests
 
         var received1 = new List<string>();
         var received2 = new List<string>();
+        var totalReceived = 0;
+        var allConsumed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
 
         var task1 = bus.SubscribeAsync<TestMessage>(
@@ -77,7 +89,7 @@ public class BusTests
             (msg, ctx, ct) =>
             {
                 received1.Add(msg.Value);
-                if (received1.Count + received2.Count >= 4) cts.Cancel();
+                if (Interlocked.Increment(ref totalReceived) >= 4) allConsumed.TrySetResult();
                 return ValueTask.CompletedTask;
             },
             cts.Token);
@@ -87,16 +99,17 @@ public class BusTests
             (msg, ctx, ct) =>
             {
                 received2.Add(msg.Value);
-                if (received1.Count + received2.Count >= 4) cts.Cancel();
+                if (Interlocked.Increment(ref totalReceived) >= 4) allConsumed.TrySetResult();
                 return ValueTask.CompletedTask;
             },
             cts.Token);
 
-        await Task.Delay(300);
-
         for (int i = 0; i < 4; i++)
             await bus.ProduceAsync((TopicId)"group-topic", new TestMessage($"msg-{i}"));
 
+        await allConsumed.Task.WaitAsync(cts.Token);
+
+        cts.Cancel();
         await Task.WhenAll(task1, task2);
 
         Assert.Equal(4, received1.Count + received2.Count);
@@ -124,10 +137,9 @@ public class BusTests
             },
             cts.Token);
 
-        await Task.Delay(200);
         await bus.ProduceAsync((TopicId)"commit-topic", new TestMessage("auto-commit-msg"));
 
-        await handlerDone.Task;
+        await handlerDone.Task.WaitAsync(cts.Token);
         await Task.Delay(50);
 
         var storedOffset = coordinator.GetCommittedOffset((ConsumerGroupId)"commit-group", new PartitionId(0));
