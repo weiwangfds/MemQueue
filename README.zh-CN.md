@@ -1,4 +1,4 @@
-# LiteQueue
+# MemQueue
 
 面向 .NET 8 的内存级 Kafka 风格消息队列与事件总线。零外部基础设施依赖，进程内发布/订阅，支持 Topic 分区、消费者组、Offset 追踪、消息保留与背压控制。
 
@@ -14,14 +14,14 @@
 - **领域事件总线** — 轻量级即发即弃的进程内事件机制（最多一次语义）
 - **顺序模式** — 无序、分区内有序、按 Key 有序（FNV-1a 哈希路由）
 - **Source Generator** — `[Subscribe]` 特性自动生成 `IHostedService` 订阅代码
-- **DI 集成** — `AddLiteQueue()` Builder 模式，流式配置 Topic
+- **DI 集成** — `AddMemQueue()` Builder 模式，流式配置 Topic
 - **Topic 统计** — 分区级别的 Head/Tail Offset、消息数量、缓冲区利用率
 
 ## 安装
 
 ```xml
-<PackageReference Include="LiteQueue" Version="1.0.0" />
-<PackageReference Include="LiteQueue.SourceGenerators" Version="1.0.0" />
+<PackageReference Include="MemQueue" Version="1.0.0" />
+<PackageReference Include="MemQueue.SourceGenerators" Version="1.0.0" />
 ```
 
 ## 快速入门
@@ -31,7 +31,7 @@
 所有消息继承自 `MessageBase`（抽象 record）：
 
 ```csharp
-using LiteQueue.Abstractions;
+using MemQueue.Abstractions;
 
 public record OrderCreated(Guid OrderId, string Product, int Quantity) : MessageBase;
 public record OrderShipped(Guid OrderId, string TrackingNumber) : MessageBase;
@@ -40,13 +40,13 @@ public record OrderShipped(Guid OrderId, string TrackingNumber) : MessageBase;
 ### 2. 注册 DI 容器
 
 ```csharp
-using LiteQueue.DependencyInjection;
-using LiteQueue.Models;
+using MemQueue.DependencyInjection;
+using MemQueue.Models;
 using Microsoft.Extensions.DependencyInjection;
 
 var services = new ServiceCollection();
 
-services.AddLiteQueue(builder => builder
+services.AddMemQueue(builder => builder
     .AddTopic("orders", topic => topic
         .WithPartitions(4)
         .WithBufferCapacity(10_000)
@@ -194,7 +194,7 @@ await consumer.SeekAsync(new PartitionId(0), new Offset(42));
 ### Topic 选项
 
 ```csharp
-services.AddLiteQueue(builder => builder
+services.AddMemQueue(builder => builder
     .AddTopic("my-topic", topic => topic
         .WithPartitions(8)                           // 分区数（默认: 1）
         .WithBufferCapacity(10_000)                  // 每分区环形缓冲区大小（默认: 1024）
@@ -216,7 +216,7 @@ services.AddLiteQueue(builder => builder
 ### 全局选项
 
 ```csharp
-services.AddLiteQueue(builder => builder
+services.AddMemQueue(builder => builder
     .SetDefaultOrdering(OrderingMode.PerPartition)
     .UseKeyHashPartitioner()    // 或 UseRoundRobinPartitioner()（默认）
     .UseRangeRebalancer()       // 或 UseRoundRobinRebalancer()
@@ -249,14 +249,14 @@ services.AddLiteQueue(builder => builder
 
 ## Source Generator
 
-`LiteQueue.SourceGenerators` 包提供 `[Subscribe]` 特性，实现声明式订阅注册。
+`MemQueue.SourceGenerators` 包提供 `[Subscribe]` 特性，实现声明式订阅注册。
 
 ### 使用方式
 
 ```csharp
-using LiteQueue;
-using LiteQueue.Abstractions;
-using LiteQueue.Models;
+using MemQueue;
+using MemQueue.Abstractions;
+using MemQueue.Models;
 
 [Subscribe("orders", GroupId = "order-processors", AutoCommit = true)]
 public class OrderHandler : IMessageHandler<OrderCreated>
@@ -272,11 +272,11 @@ public class OrderHandler : IMessageHandler<OrderCreated>
 注册所有带 `[Subscribe]` 标记的处理器：
 
 ```csharp
-services.AddLiteQueueSubscribers();
+services.AddMemQueueSubscribers();
 ```
 
 Source Generator 将自动生成：
-- `AddLiteQueueSubscribers()` 扩展方法
+- `AddMemQueueSubscribers()` 扩展方法
 - 每个订阅者类对应的 `IHostedService` 实现
 - Scoped DI 解析每个 Handler
 
@@ -359,13 +359,13 @@ foreach (var (pid, p) in stats.Partitions)
 ## 运行测试
 
 ```bash
-dotnet test tests/LiteQueue.Tests/
+dotnet test tests/MemQueue.Tests/
 ```
 
 ## 运行基准测试
 
 ```bash
-dotnet run --project tests/LiteQueue.Benchmarks/
+dotnet run --project tests/MemQueue.Benchmarks/
 ```
 
 ## 许可证

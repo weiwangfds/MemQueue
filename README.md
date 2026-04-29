@@ -1,4 +1,4 @@
-# LiteQueue
+# MemQueue
 
 In-memory Kafka-like message queue and event bus for .NET 8. Zero external infrastructure. Process-local pub/sub with topic partitions, consumer groups, offset tracking, retention, and backpressure.
 
@@ -14,14 +14,14 @@ In-memory Kafka-like message queue and event bus for .NET 8. Zero external infra
 - **Domain Event Bus** — Lightweight fire-and-forget in-process events (at-most-once)
 - **Ordering Modes** — None, per-partition, or per-key (key-hash routing via FNV-1a)
 - **Source Generator** — `[Subscribe]` attribute generates `IHostedService` boilerplate automatically
-- **DI Integration** — `AddLiteQueue()` builder with fluent topic configuration
+- **DI Integration** — `AddMemQueue()` builder with fluent topic configuration
 - **Topic Statistics** — Per-partition head/tail offsets, message count, buffer utilization
 
 ## Installation
 
 ```xml
-<PackageReference Include="LiteQueue" Version="1.0.0" />
-<PackageReference Include="LiteQueue.SourceGenerators" Version="1.0.0" />
+<PackageReference Include="MemQueue" Version="1.0.0" />
+<PackageReference Include="MemQueue.SourceGenerators" Version="1.0.0" />
 ```
 
 ## Quick Start
@@ -31,7 +31,7 @@ In-memory Kafka-like message queue and event bus for .NET 8. Zero external infra
 All messages inherit from `MessageBase` (abstract record):
 
 ```csharp
-using LiteQueue.Abstractions;
+using MemQueue.Abstractions;
 
 public record OrderCreated(Guid OrderId, string Product, int Quantity) : MessageBase;
 public record OrderShipped(Guid OrderId, string TrackingNumber) : MessageBase;
@@ -40,13 +40,13 @@ public record OrderShipped(Guid OrderId, string TrackingNumber) : MessageBase;
 ### 2. Register with DI
 
 ```csharp
-using LiteQueue.DependencyInjection;
-using LiteQueue.Models;
+using MemQueue.DependencyInjection;
+using MemQueue.Models;
 using Microsoft.Extensions.DependencyInjection;
 
 var services = new ServiceCollection();
 
-services.AddLiteQueue(builder => builder
+services.AddMemQueue(builder => builder
     .AddTopic("orders", topic => topic
         .WithPartitions(4)
         .WithBufferCapacity(10_000)
@@ -194,7 +194,7 @@ await consumer.SeekAsync(new PartitionId(0), new Offset(42));
 ### Topic Options
 
 ```csharp
-services.AddLiteQueue(builder => builder
+services.AddMemQueue(builder => builder
     .AddTopic("my-topic", topic => topic
         .WithPartitions(8)                           // partition count (default: 1)
         .WithBufferCapacity(10_000)                  // ring buffer size per partition (default: 1024)
@@ -216,7 +216,7 @@ services.AddLiteQueue(builder => builder
 ### Global Options
 
 ```csharp
-services.AddLiteQueue(builder => builder
+services.AddMemQueue(builder => builder
     .SetDefaultOrdering(OrderingMode.PerPartition)
     .UseKeyHashPartitioner()    // or UseRoundRobinPartitioner() (default)
     .UseRangeRebalancer()       // or UseRoundRobinRebalancer()
@@ -249,14 +249,14 @@ services.AddLiteQueue(builder => builder
 
 ## Source Generator
 
-The `LiteQueue.SourceGenerators` package provides the `[Subscribe]` attribute for declarative subscription registration.
+The `MemQueue.SourceGenerators` package provides the `[Subscribe]` attribute for declarative subscription registration.
 
 ### Usage
 
 ```csharp
-using LiteQueue;
-using LiteQueue.Abstractions;
-using LiteQueue.Models;
+using MemQueue;
+using MemQueue.Abstractions;
+using MemQueue.Models;
 
 [Subscribe("orders", GroupId = "order-processors", AutoCommit = true)]
 public class OrderHandler : IMessageHandler<OrderCreated>
@@ -272,11 +272,11 @@ public class OrderHandler : IMessageHandler<OrderCreated>
 Register all `[Subscribe]`-decorated handlers:
 
 ```csharp
-services.AddLiteQueueSubscribers();
+services.AddMemQueueSubscribers();
 ```
 
 The source generator produces:
-- `AddLiteQueueSubscribers()` extension method
+- `AddMemQueueSubscribers()` extension method
 - `IHostedService` implementations per subscriber class
 - Scoped DI resolution for each handler
 
@@ -359,13 +359,13 @@ foreach (var (pid, p) in stats.Partitions)
 ## Running Tests
 
 ```bash
-dotnet test tests/LiteQueue.Tests/
+dotnet test tests/MemQueue.Tests/
 ```
 
 ## Running Benchmarks
 
 ```bash
-dotnet run --project tests/LiteQueue.Benchmarks/
+dotnet run --project tests/MemQueue.Benchmarks/
 ```
 
 ## License
